@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="header">
+    <span class="title">Docs Pro Formatter</span>
+    <label class="toggle">
+      <input type="checkbox" id="enabled">
+      <span class="slider"></span>
+    </label>
+  </div>
+
+  <div class="section">
+    <div class="row">
+      <label for="imageWidth">Image width</label>
+      <div class="input-group">
+        <input type="number" id="imageWidth" min="50" max="2000" value="400">
+        <span class="unit">px</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section">
+    <div class="section-header">Shortcut keys</div>
+    <table class="shortcuts">
+      <tbody>
+        <tr><td>Heading 1</td>    <td><input class="key-input" data-action="h1"          maxlength="1"></td></tr>
+        <tr><td>Heading 2</td>    <td><input class="key-input" data-action="h2"          maxlength="1"></td></tr>
+        <tr><td>Heading 3</td>    <td><input class="key-input" data-action="h3"          maxlength="1"></td></tr>
+        <tr><td>Heading 4</td>    <td><input class="key-input" data-action="h4"          maxlength="1"></td></tr>
+        <tr><td>Normal text</td>  <td><input class="key-input" data-action="normal"      maxlength="1"></td></tr>
+        <tr><td>Bullet list</td>  <td><input class="key-input" data-action="bullet"      maxlength="1"></td></tr>
+        <tr><td>Remove space</td>         <td><input class="key-input" data-action="removeSpace"       maxlength="1"></td></tr>
+        <tr><td>Bullet fixer</td>        <td><input class="key-input" data-action="bulletFixer"       maxlength="1"></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
