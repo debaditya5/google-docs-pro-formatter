@@ -161,15 +161,15 @@
     const copied = document.execCommand('copy');
     await new Promise(r => setTimeout(r, 150));
 
-    let lineCount = 0;
+    let lines = [];
     if (copied) {
       try {
         const clip = await navigator.clipboard.readText();
-        lineCount = clip ? clip.split('\n').filter(l => l.trim()).length : 0;
+        if (clip) lines = clip.split('\n').filter(l => l.trim());
       } catch {}
     }
 
-    if (lineCount < 2) {
+    if (lines.length < 2) {
       console.warn('[GDocsPF] select the block first (could not read selection)');
       return;
     }
@@ -182,21 +182,28 @@
     key({ key: '*', code: 'Digit8', keyCode: 56, metaKey: true, shiftKey: true });
     await new Promise(r => setTimeout(r, 250));
 
-    // Move to line 2.
-    key({ key: 'ArrowDown', code: 'ArrowDown', keyCode: 40 });
-    await new Promise(r => setTimeout(r, 80));
+    // Navigate past exactly one paragraph by advancing charCount+1 positions
+    // (ArrowRight through the text chars + 1 for the paragraph break).
+    // This is reliable for wrapped paragraphs — ArrowDown moves by visual row,
+    // which causes long lines to be Tab-bed multiple times.
+    const advance = (charCount) => {
+      for (let c = 0; c <= charCount; c++) {
+        key({ key: 'ArrowRight', code: 'ArrowRight', keyCode: 39 });
+      }
+    };
 
-    // Tab each remaining line individually — preserves original hierarchy.
-    // Home before Tab is critical: ArrowDown lands at the same visual column as
-    // the previous line (mid-text on shorter lines), and Tab at mid-text inserts
-    // a literal tab character instead of indenting the list item.
-    for (let i = 1; i < lineCount; i++) {
+    // Move to start of line 2 by advancing past line 1.
+    advance(lines[0].length);
+    await new Promise(r => setTimeout(r, 100));
+
+    // Tab each remaining line; advance to the next via character count.
+    for (let i = 1; i < lines.length; i++) {
       key({ key: 'Home', code: 'Home', keyCode: 36 });
       await new Promise(r => setTimeout(r, 40));
       key({ key: 'Tab', code: 'Tab', keyCode: 9 });
       await new Promise(r => setTimeout(r, 80));
-      if (i < lineCount - 1) {
-        key({ key: 'ArrowDown', code: 'ArrowDown', keyCode: 40 });
+      if (i < lines.length - 1) {
+        advance(lines[i].length);
         await new Promise(r => setTimeout(r, 60));
       }
     }
