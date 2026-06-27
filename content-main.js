@@ -156,21 +156,31 @@
     const key = (opts) =>
       el().dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, cancelable: true, ...opts }));
 
-    // execCommand('copy') must run before any await so it stays within the
-    // user-gesture context (needed for clipboard write permission).
-    const copied = document.execCommand('copy');
-    await new Promise(r => setTimeout(r, 150));
+    // Read clipboard BEFORE trying to copy, so we can detect if execCommand
+    // actually updated it (it sometimes silently fails to trigger Google Docs'
+    // copy handler, leaving stale content that causes wrong cursor math).
+    let prevClip = '';
+    try { prevClip = await navigator.clipboard.readText(); } catch {}
 
-    let lines = [];
-    if (copied) {
-      try {
-        const clip = await navigator.clipboard.readText();
-        if (clip) lines = clip.split('\n').filter(l => l.trim());
-      } catch {}
+    document.execCommand('copy');
+    await new Promise(r => setTimeout(r, 200));
+
+    let clip = '';
+    try { clip = await navigator.clipboard.readText(); } catch {}
+
+    // Prefer the freshly-copied content; fall back to prevClip (e.g. user
+    // pressed Cmd+C manually before pressing the Bullet Fixer key).
+    const content = (clip && clip !== prevClip) ? clip : prevClip;
+    if (!content) {
+      console.warn('[GDocsPF] clipboard empty — select the block and press Cmd+C first, then the Bullet Fixer key');
+      return;
     }
 
+    // Strip carriage returns (Windows line endings) before splitting.
+    const lines = content.split('\n').map(l => l.replace(/\r$/, '')).filter(l => l.trim());
+
     if (lines.length < 2) {
-      console.warn('[GDocsPF] select the block first (could not read selection)');
+      console.warn('[GDocsPF] select the block first (need 2+ lines)');
       return;
     }
 
